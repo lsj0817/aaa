@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.demo.dao.StudentMapper">
+    <resultMap id="Stud" type="com.example.demo.entity.Student">
+        <id property="sid" column="SID"/>
+        <result property="sname" column="SNAME"/>
+        <result property="sex" column="SEX"/>
+        <result property="age" column="AGE"/>
+        <result property="address" column="ADDRESS"/>
+        <result property="cid" column="CID"/>
+        <association property="clazz" javaType="com.example.demo.entity.Clazz">
+            <id property="cid" column="CID"/>
+            <result property="cname" column="CNAME"/>
+        </association>
+    </resultMap>
+    <select id="selectStudent" resultMap="Stud" parameterType="com.example.demo.entity.Student">
+        select * from student s left join clazz c on s.cid=c.cid
+        <where>
+            <if test="sname!=null">
+                s.sname like '%${sname}%'
+            </if>
+            <if test="sex!=0"><!-- and拼接 -->
+                and s.sex=#{sex}
+            </if>
+            <if test="cid!=0"><!-- and拼接 -->
+                and s.cid=#{cid}
+            </if>
+        </where>
+        order by s.sid offset #{startPos} row fetch next #{pageSize} row only
+    </select>
+    <delete id="deleteStudent" parameterType="int">
+        delete from student where sid=#{sid}
+    </delete>
+    <select id="getStudentById" parameterType="int" resultMap="Stud">
+        select * from student where sid=#{sid}
+    </select>
+    <insert id="addStudent" parameterType="com.example.demo.entity.Student">
+        insert into student(sname,sex,age,address,cid) values(#{sname},#{sex},#{age},#{address},#{cid})
+    </insert>
+    <update id="updateStudent" parameterType="com.example.demo.entity.Student">
+        update student set sname=#{sname},sex=#{sex},age=#{age},address=#{address},cid=#{cid} where sid=#{sid}
+    </update>
+    <select id="getPageCount" parameterType="Student" resultType="int">
+        select count(*) from student
+<where>
+    <if test="sname!=null">
+        sname like '%${sname}%'
+    </if>
+    <if test="sex!=0"><!-- and拼接 -->
+        and sex=#{sex}
+    </if>
+    <if test="cid!=0"><!-- and拼接 -->
+        and cid=#{cid}
+    </if>
+</where>
+    </select>
+    <!-- 批删   mybatis4项目中有-->
+    <delete id="deleteBatch"  parameterType="list" >
+        delete from student where sid in
+        <foreach item="item" index="index" collection="list"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>
